@@ -267,7 +267,7 @@
         <slf4j.version>1.7.5</slf4j.version>
         <log4j.version>1.2.17</log4j.version>
         <codec.version>1.7</codec.version>
-        <fastjackson.version>2.3.2</fastjackson.version>
+        <fastjackson.version>2.11.0</fastjackson.version>
         <jaxb-api.version>2.2.6</jaxb-api.version>
         <jaxb-impl.version>2.1</jaxb-impl.version>
         <woodstox.version>4.1.5</woodstox.version>
