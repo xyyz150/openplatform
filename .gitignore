@@ -1,7 +1,7 @@
 /.idea
-/qimenapi/target
-/srop/target
-/srop/.idea
+/opf-sample/target
+/opf/target
+/opf/.idea
 /openplatform.iml
-/qimenapi/qimenapi.iml
-/srop/srop.iml
+/opf-sample/opf-sample.iml
+/opf/opf.iml

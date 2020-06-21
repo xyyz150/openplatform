@@ -1,0 +1,80 @@
+﻿<?xml version="1.0" encoding="UTF-8"?>
+<!-- edited with XMLSpy v2010 (http://www.altova.com) by hajunma (MiZE) -->
+<xsd:schema xmlns="http://www.opf.com/schema/opf"
+            xmlns:xsd="http://www.w3.org/2001/XMLSchema"
+            xmlns:beans="http://www.springframework.org/schema/beans"
+            xmlns:tool="http://www.springframework.org/schema/tool"
+            targetNamespace="http://www.opf.com/schema/opf"
+            elementFormDefault="qualified"
+            attributeFormDefault="unqualified">
+    <xsd:import namespace="http://www.springframework.org/schema/beans"
+                schemaLocation="http://www.springframework.org/schema/beans/spring-beans-3.1.xsd"/>
+    <xsd:import namespace="http://www.springframework.org/schema/tool"
+                schemaLocation="http://www.springframework.org/schema/tool/spring-tool-3.1.xsd"/>
+    <xsd:element name="router">
+        <xsd:complexType>
+            <xsd:complexContent>
+                <xsd:extension base="beans:identifiedType">
+                    <xsd:attribute name="session-manager" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <tool:annotation kind="ref">
+                                    <tool:expected-type type="java:com.github.opf.session.SessionManager"/>
+                                </tool:annotation>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:attribute>
+                    <xsd:attribute name="appSecret-manager" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <tool:annotation kind="ref">
+                                    <tool:expected-type type="java:com.github.opf.security.AppSecretManager"/>
+                                </tool:annotation>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:attribute>
+                    <xsd:attribute name="invoke-manager" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <tool:annotation kind="ref">
+                                    <tool:expected-type type="java:com.github.opf.security.InvokeManager"/>
+                                </tool:annotation>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:attribute>
+                    <xsd:attribute name="thread-pool-manager" type="xsd:string">
+                        <xsd:annotation>
+                            <xsd:appinfo>
+                                <tool:annotation kind="ref">
+                                    <tool:expected-type
+                                            type="org.springframework.scheduling.concurrent.ThreadPoolExecutorFactoryBean"/>
+                                </tool:annotation>
+                            </xsd:appinfo>
+                        </xsd:annotation>
+                    </xsd:attribute>
+                    <xsd:attribute name="service-timeout-seconds" type="xsd:string"/>
+                </xsd:extension>
+            </xsd:complexContent>
+        </xsd:complexType>
+    </xsd:element>
+    <!--opf的监听器-->
+    <xsd:element name="listeners">
+        <xsd:complexType>
+            <xsd:choice maxOccurs="unbounded">
+                <xsd:element ref="beans:bean"/>
+                <xsd:element ref="beans:ref"/>
+            </xsd:choice>
+        </xsd:complexType>
+    </xsd:element>
+    <!--自定义opf系统参数名-->
+    <xsd:element name="sysParams">
+        <xsd:complexType>
+            <xsd:attribute name="appKey-alias" type="xsd:string"/>
+            <xsd:attribute name="accessToken-alias" type="xsd:string"/>
+            <xsd:attribute name="method-alias" type="xsd:string"/>
+            <xsd:attribute name="version-alias" type="xsd:string"/>
+            <xsd:attribute name="format-alias" type="xsd:string"/>
+            <xsd:attribute name="sign-alias" type="xsd:string"/>
+        </xsd:complexType>
+    </xsd:element>
+</xsd:schema>

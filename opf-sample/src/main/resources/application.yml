@@ -1,0 +1,36 @@
+server:
+  port: 8080
+
+
+#服务名称
+spring:
+  application:
+    name: opf-sample
+  main:
+    allow-bean-definition-overriding: true
+  jackson:
+    date-format: yyyy-MM-dd HH:mm:ss
+    time-zone: GMT+8
+    default-property-inclusion: non_null
+  http:
+    encoding:
+      charset: UTF-8
+      enabled: true
+      force: true
+  servlet:
+      multipart:
+        max-file-size: 20MB
+        max-request-size: 100MB
+
+opf:
+  appKeyAlias: appKey
+  accessTokenAlias: accessToken
+  methodAlias: method
+  versionAlias: v
+  formatAlias: format
+  signAlias: sign
+  task:
+    corePoolSize: 5
+    keepAliveSeconds: 300
+    maxPoolSize: 50
+    queueCapacity: 500
