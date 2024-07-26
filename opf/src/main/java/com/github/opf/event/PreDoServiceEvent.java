@@ -4,12 +4,8 @@ package com.github.opf.event;
 import com.github.opf.request.OpfRequestContext;
 
 /**
- * <pre>
- *    在执行服务方法之前产生的事件
- * </pre>
- *
-
- * @version 1.0
+ * 在执行服务方法之前产生的事件
+ * Created by xyyz150
  */
 public class PreDoServiceEvent extends OpfEvent {
 

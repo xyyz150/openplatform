@@ -33,11 +33,10 @@ public class HttpHelper {
     }
 
     public static String doPost(String url, String param) throws Exception {
-        String charset = DEFAULT_CHARSET;
-        String ctype = "application/xml;charset=" + charset;
+        String ctype = "application/xml;charset=" + DEFAULT_CHARSET;
         byte[] content = {};
         if (param != null) {
-            content = param.getBytes(charset);
+            content = param.getBytes(DEFAULT_CHARSET);
         }
         HttpURLConnection conn = null;
         OutputStream out = null;

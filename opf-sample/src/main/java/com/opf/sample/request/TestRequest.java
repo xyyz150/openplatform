@@ -1,12 +1,12 @@
 package com.opf.sample.request;
 
 
-import com.github.opf.request.OpfRequestAdapter;
+import com.github.opf.request.OpfRequest;
 
 /**
  * Created by xyyz150
  */
-public class TestRequest extends OpfRequestAdapter {
+public class TestRequest implements OpfRequest {
     private String code;
     private String name;
 

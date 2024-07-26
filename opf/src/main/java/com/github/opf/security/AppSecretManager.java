@@ -2,11 +2,8 @@
 package com.github.opf.security;
 
 /**
- * <pre>
- *    应用键管理器，可根据appKey获取对应的secret.
- * </pre>
- *
- * @version 1.0
+ * 应用键管理器，可根据appKey获取对应的secret.
+ * Created by xyyz150
  */
 public interface AppSecretManager {
 

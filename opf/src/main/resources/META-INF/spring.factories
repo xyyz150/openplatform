@@ -1,2 +1,2 @@
 org.springframework.boot.autoconfigure.EnableAutoConfiguration=\
-com.github.opf.autoConfiguration.OpfConfig
+com.github.opf.autoConfiguration.OpfConfiguration

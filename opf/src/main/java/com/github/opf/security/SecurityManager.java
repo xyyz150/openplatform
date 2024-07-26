@@ -6,11 +6,8 @@ import com.github.opf.response.OpfResponse;
 import com.github.opf.session.SessionManager;
 
 /**
- * <pre>
- *   负责对请求数据、会话、业务安全、应用密钥安全进行检查并返回相应的错误
- * </pre>
- *
- * @version 1.0
+ * 负责对请求数据、会话、业务安全、应用密钥安全进行检查并返回相应的错误
+ * Created by xyyz150
  */
 public interface SecurityManager {
 

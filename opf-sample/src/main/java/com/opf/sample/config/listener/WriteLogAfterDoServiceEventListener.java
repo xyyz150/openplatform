@@ -4,7 +4,7 @@ package com.opf.sample.config.listener;
 import cn.hutool.core.date.DateUtil;
 import com.github.opf.event.AfterDoServiceEvent;
 import com.github.opf.event.OpfEventListener;
-import com.github.opf.marshaller.MessageMarshallerUtils;
+import com.github.opf.marshaller.MessageWriteUtils;
 import com.github.opf.request.OpfRequestContext;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -24,10 +24,10 @@ public class WriteLogAfterDoServiceEventListener implements OpfEventListener<Aft
         OpfRequestContext opfRequestContext = opfEvent.getOpfRequestContext();
         if (opfRequestContext != null) {
             Map<String, String> allParams = opfRequestContext.getAllParams();
-            String requestMessage = MessageMarshallerUtils.asUrlString(allParams)+"&body="+opfRequestContext.getBody();
+            String requestMessage = MessageWriteUtils.asUrlString(allParams)+"&body="+opfRequestContext.getBody();
             Object response = opfRequestContext.getOpfResponse();
 
-            String responseMessage = MessageMarshallerUtils.getMessage(response, opfRequestContext.getFormat());
+            String responseMessage = MessageWriteUtils.getMessage(response, opfRequestContext.getFormat());
             logger.info("本次请求" + opfRequestContext.getMethod() + "(" + opfRequestContext.getVersion() + ")耗时："
                     + DateUtil.formatDateTime(new Date(opfRequestContext.getServiceBeginTime())) + "到"
                     + DateUtil.formatDateTime(new Date(opfRequestContext.getServiceEndTime())) + "\n"

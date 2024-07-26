@@ -14,7 +14,6 @@ import org.springframework.util.ReflectionUtils;
 import org.springframework.util.StringUtils;
 
 
-import java.lang.reflect.Method;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -65,9 +64,6 @@ public class OpfContext {
                                     throw new OpfException(method.getDeclaringClass().getName() + "." + method.getName()
                                             + "的入参必须是" + OpfRequest.class.getName());
                                 }
-                                boolean opfRequestImplType = !(paramType.isAssignableFrom(OpfRequest.class) ||
-                                        paramType.isAssignableFrom(OpfRequest.class));
-                                serviceMethodHandler.setOpfRequestImplType(opfRequestImplType);
                                 serviceMethodHandler.setRequestType((Class<? extends OpfRequest>) paramType);
                             } else {
                                 logger.info(method.getDeclaringClass().getName() + "." + method.getName() + "无入参");
@@ -96,26 +92,22 @@ public class OpfContext {
         definition.setMethod(serviceMethod.method());
         definition.setMethodTitle(serviceMethod.title());
         definition.setMethodGroup(serviceMethod.group());
-        definition.setMethodGroupTitle(serviceMethod.groupTitle());
         definition.setTags(serviceMethod.tags());
         definition.setTimeout(serviceMethod.timeout());
         definition.setVersion(serviceMethod.version());
         definition.setNeedInSession(NeedInSessionType.isNeedInSession(serviceMethod.needInSession()));
-        definition.setObsoleted(ObsoletedType.isObsoleted(serviceMethod.obsoleted()));
-        definition.setHttpAction(serviceMethod.httpAction());
+        definition.setDeprecated(DeprecatedType.isDeprecated(serviceMethod.deprecated()));
         return definition;
     }
 
     private ServiceMethodDefinition buildServiceMethodDefinition(ServiceMethodBean serviceMethodBean, ServiceMethod serviceMethod) {
         ServiceMethodDefinition definition = new ServiceMethodDefinition();
         definition.setMethodGroup(serviceMethodBean.group());
-        definition.setMethodGroupTitle(serviceMethodBean.groupTitle());
         definition.setTags(serviceMethodBean.tags());
         definition.setTimeout(serviceMethodBean.timeout());
         definition.setVersion(serviceMethodBean.version());
         definition.setNeedInSession(NeedInSessionType.isNeedInSession(serviceMethodBean.needInSession()));
-        definition.setHttpAction(serviceMethodBean.httpAction());
-        definition.setObsoleted(ObsoletedType.isObsoleted(serviceMethodBean.obsoleted()));
+        definition.setDeprecated(DeprecatedType.isDeprecated(serviceMethodBean.deprecated()));
         definition.setIgnoreSign(IgnoreSignType.isIgnoreSign(serviceMethodBean.ignoreSign()));
 
         //如果ServiceMethod所提供的值和ServiceMethodGroup不一样，覆盖之
@@ -124,10 +116,6 @@ public class OpfContext {
 
         if (!ServiceMethodDefinition.DEFAULT_GROUP.equals(serviceMethod.group())) {
             definition.setMethodGroup(serviceMethod.group());
-        }
-
-        if (!ServiceMethodDefinition.DEFAULT_GROUP_TITLE.equals(serviceMethod.groupTitle())) {
-            definition.setMethodGroupTitle(serviceMethod.groupTitle());
         }
 
         if (serviceMethod.tags() != null && serviceMethod.tags().length > 0) {
@@ -146,13 +134,10 @@ public class OpfContext {
             definition.setNeedInSession(NeedInSessionType.isNeedInSession(serviceMethod.needInSession()));
         }
 
-        if (serviceMethod.obsoleted() != ObsoletedType.DEFAULT) {
-            definition.setObsoleted(ObsoletedType.isObsoleted(serviceMethod.obsoleted()));
+        if (serviceMethod.deprecated() != DeprecatedType.DEFAULT) {
+            definition.setDeprecated(DeprecatedType.isDeprecated(serviceMethod.deprecated()));
         }
 
-        if (serviceMethod.httpAction().length > 0) {
-            definition.setHttpAction(serviceMethod.httpAction());
-        }
         if (serviceMethod.ignoreSign() != IgnoreSignType.DEFAULT) {
             definition.setIgnoreSign(IgnoreSignType.isIgnoreSign(serviceMethod.ignoreSign()));
         }

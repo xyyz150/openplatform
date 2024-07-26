@@ -2,7 +2,6 @@ package com.github.opf.router;
 
 import com.github.opf.MessageFormat;
 import com.github.opf.OpfContext;
-import com.github.opf.annotation.HttpAction;
 import com.github.opf.config.SystemParameterNames;
 import com.github.opf.event.DefaultOpfEventHandler;
 import com.github.opf.event.OpfEventHandler;
@@ -42,13 +41,19 @@ public class OpfBuilder {
 
     protected static Logger logger = LoggerFactory.getLogger(OpfBuilder.class);
 
+    private static Object lock = new Object();
+
     public static void initValidator() {
         if (validator == null) {
-            //spring集成验证，暂不使用，使用原生的
-//            LocalValidatorFactoryBean factoryBean = new LocalValidatorFactoryBean();
-//            factoryBean.afterPropertiesSet();
-            ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
-            validator = factory.getValidator();
+            synchronized (lock) {
+                if (validator == null) {
+                    //spring集成验证，暂不使用，使用原生的
+                    //LocalValidatorFactoryBean factoryBean = new LocalValidatorFactoryBean();
+                    //factoryBean.afterPropertiesSet();
+                    ValidatorFactory factory = Validation.buildDefaultValidatorFactory();
+                    validator = factory.getValidator();
+                }
+            }
         }
     }
 
@@ -79,17 +84,52 @@ public class OpfBuilder {
         requestContext.setServiceBeginTime(System.currentTimeMillis());
         requestContext.setIp(getRemoteAddress(servletRequest));
         //设置服务的系统级参数
-        requestContext.setAppKey(OpfUtils.urlDecode(servletRequest.getParameter(SystemParameterNames.getAppKey())));
-        requestContext.setAccessToken(OpfUtils.urlDecode(servletRequest.getParameter(SystemParameterNames.getAccessToken())));
-        requestContext.setMethod(OpfUtils.urlDecode(servletRequest.getParameter(SystemParameterNames.getMethod())));
-        requestContext.setVersion(OpfUtils.urlDecode(servletRequest.getParameter(SystemParameterNames.getVersion())));
-        requestContext.setFormat(OpfUtils.getFormat(servletRequest));
-        requestContext.setSign(OpfUtils.urlDecode(servletRequest.getParameter(SystemParameterNames.getSign())));
-        requestContext.setHttpAction(HttpAction.fromValue(servletRequest.getMethod()));
+        String appKey = servletRequest.getParameter(SystemParameterNames.getAppKey());
+        if (StringUtils.hasText(appKey)) {
+            requestContext.setAppKey(OpfUtils.urlDecode(appKey));
+        } else {
+            requestContext.setAppKey("");
+        }
+        String sessionId = servletRequest.getParameter(SystemParameterNames.getSession());
+        if (StringUtils.hasText(sessionId)) {
+            requestContext.setSessionId(OpfUtils.urlDecode(sessionId));
+        } else {
+            requestContext.setSessionId("");
+        }
+        String method = servletRequest.getParameter(SystemParameterNames.getMethod());
+        if (StringUtils.hasText(method)) {
+            requestContext.setMethod(OpfUtils.urlDecode(method));
+        } else {
+            requestContext.setMethod("");
+        }
+        String version = servletRequest.getParameter(SystemParameterNames.getVersion());
+        if (StringUtils.hasText(version)) {
+            requestContext.setVersion(OpfUtils.urlDecode(version));
+        } else {
+            requestContext.setVersion("");
+        }
+        String format = servletRequest.getParameter(SystemParameterNames.getFormat());
+        if (StringUtils.hasText(format)) {
+            requestContext.setFormat(MessageFormat.getFormat(OpfUtils.urlDecode(format)));
+        } else {
+            requestContext.setFormat(MessageFormat.json);
+        }
+        String timestamp = servletRequest.getParameter(SystemParameterNames.getTimestamp());
+        if (StringUtils.hasText(timestamp)) {
+            requestContext.setTimestamp(OpfUtils.urlDecode(timestamp));
+        } else {
+            requestContext.setTimestamp("");
+        }
+        String sign = servletRequest.getParameter(SystemParameterNames.getSign());
+        if (StringUtils.hasText(sign)) {
+            requestContext.setSign(OpfUtils.urlDecode(sign));
+        } else {
+            requestContext.setSign("");
+        }
         try {
             requestContext.setBody(OpfUtils.getBody(servletRequest));
         } catch (Exception e) {
-            logger.error("获取body错误：" + e.toString());
+            logger.error("获取body错误：" + e, e);
         }
         //设置所有参数
         requestContext.setAllParams(getRequestParams(servletRequest));
@@ -105,48 +145,48 @@ public class OpfBuilder {
     public static OpfRequest buildOpfRequest(OpfRequestContext opfRequestContext) {
         OpfRequest opfRequest = null;
         try {
-            if (opfRequestContext.getServiceMethodHandler().isOpfRequestImplType()) {
-                Class<? extends OpfRequest> classType = opfRequestContext.getServiceMethodHandler().getRequestType();
-                if (opfRequestContext.getFormat() == MessageFormat.json) {
-                    opfRequest = JsonUtils.parse(opfRequestContext.getBody(), classType);
-                } else if (opfRequestContext.getFormat() == MessageFormat.xml) {
-                    ObjectXmlParser parser = new ObjectXmlParser(classType);
-                    opfRequest = (OpfRequest) parser.parse(opfRequestContext.getBody());
-                }
-                opfRequest.setOpfRequestContext(opfRequestContext);
+            Class<? extends OpfRequest> classType = opfRequestContext.getServiceMethodHandler().getRequestType();
+            if (opfRequestContext.getFormat() == MessageFormat.json) {
+                opfRequest = JsonUtils.parse(opfRequestContext.getBody(), classType);
+            } else if (opfRequestContext.getFormat() == MessageFormat.xml) {
+                ObjectXmlParser parser = new ObjectXmlParser(classType);
+                opfRequest = (OpfRequest) parser.parse(opfRequestContext.getBody());
             }
         } catch (Exception e) {
-            throw new InvalidParameterException(e.getMessage());
+            throw new InvalidParameterException(e.getMessage(), e);
         }
         return opfRequest;
     }
 
-    public static OpfResponse Validation(OpfRequest request) throws Exception {
+    public static OpfResponse Validation(final OpfRequestContext requestContext, OpfRequest request) throws Exception {
         initValidator();
         Set<ConstraintViolation<OpfRequest>> errorList = validator.validate(request);
-        if (errorList == null || errorList.size() == 0) return null;
-        StringBuffer sb = new StringBuffer();
-        for (ConstraintViolation<OpfRequest> validate : errorList) {
-            sb.append(validate.getPropertyPath()).append(validate.getMessage()).append(";");
+        if (errorList == null || errorList.size() == 0) {
+            return null;
         }
-        String str=new String(sb.toString().getBytes(),"gb2312");
-        return getOpfResponse(false, MainErrorType.INVALID_PARAM, request.getOpfRequestContext().getMethod(),
-                request.getOpfRequestContext().getVersion(), new String(str.getBytes("utf-8"),"utf-8"));
+        StringBuffer str = new StringBuffer();
+        for (ConstraintViolation<OpfRequest> validate : errorList) {
+            str.append(validate.getPropertyPath()).append(validate.getMessage()).append(";");
+        }
+        return getOpfResponse(false, MainErrorType.INVALID_PARAM, requestContext.getMethod(),
+                requestContext.getVersion(), str.toString());
     }
 
     private static HashMap<String, String> getRequestParams(HttpServletRequest request) {
         HashMap<String, String> destParamMap = new HashMap<String, String>();
         String queryString = request.getQueryString();
-        queryString = OpfUtils.urlDecode(queryString);
         String[] queryArr = queryString.split("&");
         for (String query : queryArr) {
-            int index = query.indexOf("=");
-            if (index < 0) {
-                continue;
+            String[] kv = query.split("=");
+            String key;
+            if (kv.length == 2) {
+                key = OpfUtils.urlDecode(kv[0]);
+                String value = OpfUtils.urlDecode(kv[1]);
+                destParamMap.put(key, value);
+            } else if (kv.length == 1) {
+                key = OpfUtils.urlDecode(kv[0]);
+                destParamMap.put(key, "");
             }
-            String key = query.substring(0, index);
-            String value = query.substring(index + 1);
-            destParamMap.put(key, value);
         }
         return destParamMap;
     }
@@ -172,9 +212,9 @@ public class OpfBuilder {
 
     public static OpfResponse getOpfResponse(boolean success, MainErrorType mainErrorType, String method, String v, String msg) {
         OpfResponse response = new OpfResponse();
-        response.setFlag(success ? "success" : "failure");
-        response.setCode(new StringBuffer().append(mainErrorType.getValue()).append(method).append(":").append(v).toString());
-        response.setMessage(msg);
+        response.setCode(success ? "0" : mainErrorType.getCode());
+        response.setErrorCode(new StringBuffer().append(mainErrorType.getValue()).append(method).append(":").append(v).toString());
+        response.setErrorMessage(msg);
         return response;
     }
 }

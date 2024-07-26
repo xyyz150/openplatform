@@ -23,14 +23,13 @@ spring:
         max-request-size: 100MB
 
 opf:
-  appKeyAlias: appKey
-  accessTokenAlias: accessToken
-  methodAlias: method
-  versionAlias: v
-  formatAlias: format
-  signAlias: sign
   task:
+    corePoolSize: 10
+    keepAliveSeconds: 300
+    maxPoolSize: 100
+    queueCapacity: 10000
+  event:
     corePoolSize: 5
     keepAliveSeconds: 300
-    maxPoolSize: 50
-    queueCapacity: 500
+    maxPoolSize: 5
+    queueCapacity: 10000

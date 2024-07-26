@@ -1,7 +1,5 @@
 package com.github.opf.security;
 
-import com.github.opf.OpfContext;
-import com.github.opf.annotation.HttpAction;
 import com.github.opf.config.SystemParameterNames;
 import com.github.opf.request.OpfRequestContext;
 import com.github.opf.response.MainErrorType;
@@ -11,11 +9,16 @@ import com.github.opf.session.DefaultSessionManager;
 import com.github.opf.session.Session;
 import com.github.opf.session.SessionManager;
 import com.github.opf.utils.OpfUtils;
+import org.apache.commons.lang3.time.DateUtils;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.util.StringUtils;
+
+import java.text.ParseException;
+import java.util.Date;
 
 /**
- * @version 1.0
+ *
  */
 public class DefaultSecurityManager implements com.github.opf.security.SecurityManager {
 
@@ -33,59 +36,69 @@ public class DefaultSecurityManager implements com.github.opf.security.SecurityM
         sessionManager = new DefaultSessionManager();
     }
 
-
+    @Override
     public OpfResponse validateSystemParameters(OpfRequestContext opfRequestContext) {
-        OpfContext opfContext = opfRequestContext.getOpfContext();
-        OpfResponse mainError = null;
-
         //1.检查appKey
-        if (opfRequestContext.getAppKey() == null) {
+        if (StringUtils.isEmpty(opfRequestContext.getAppKey())) {
             return OpfBuilder.getOpfResponse(false, MainErrorType.MISSING_APP_KEY, opfRequestContext.getMethod(), opfRequestContext.getVersion(), SystemParameterNames.getAppKey() + "不能为空");
         }
         if (!appSecretManager.isValidAppKey(opfRequestContext.getAppKey())) {
             return OpfBuilder.getOpfResponse(false, MainErrorType.INVALID_APP_KEY, opfRequestContext.getMethod(), opfRequestContext.getVersion(), SystemParameterNames.getAppKey() + "不合法");
         }
 
-
-        //2.检查会话
-        mainError = checkSession(opfRequestContext);
-        if (mainError != null) {
-            return mainError;
-        }
-
-        //3.检查method参数
-        if (opfRequestContext.getMethod() == null) {
+        //2.检查method参数
+        if (StringUtils.isEmpty(opfRequestContext.getMethod())) {
             return OpfBuilder.getOpfResponse(false, MainErrorType.MISSING_METHOD, opfRequestContext.getMethod(), opfRequestContext.getVersion(),
                     SystemParameterNames.getMethod() + "不能为空");
         } else {
-            if (!opfContext.isValidMethod(opfRequestContext.getMethod(), opfRequestContext.getVersion())) {
+            if (opfRequestContext.getServiceMethodHandler() == null) {
+                String message = java.text.MessageFormat.format("方法 {0}#{1} 不合法", opfRequestContext.getMethod(), opfRequestContext.getVersion());
                 return OpfBuilder.getOpfResponse(false, MainErrorType.INVALID_METHOD, opfRequestContext.getMethod(), opfRequestContext.getVersion(),
-                        String.format("方法%1$s不合法", opfRequestContext.getMethod()));
+                        message);
             }
         }
 
-        //4.检查签名正确性
-        mainError = checkSign(opfRequestContext);
-        if (mainError != null) {
-            return mainError;
+        //3.检查服务方法的版本是否已经过期
+        if (opfRequestContext.getServiceMethodHandler().getServiceMethodDefinition().isDeprecated()) {
+            String message = java.text.MessageFormat.format("方法 {0}#{1} 已过期", opfRequestContext.getMethod(), opfRequestContext.getVersion());
+            return OpfBuilder.getOpfResponse(false, MainErrorType.METHOD_DEPRECATED, opfRequestContext.getMethod(), opfRequestContext.getVersion(),
+                    message);
         }
 
-        //6.检查服务方法的版本是否已经过期
-        if (opfRequestContext.getServiceMethodHandler().getServiceMethodDefinition().isObsoleted()) {
-            return OpfBuilder.getOpfResponse(false, MainErrorType.METHOD_OBSOLETED, opfRequestContext.getMethod(), opfRequestContext.getVersion(),
-                    String.format("方法%1$s已过期", opfRequestContext.getMethod()));
+        //4.检查timestamp是否已经过期
+        try {
+            if (StringUtils.isEmpty(opfRequestContext.getTimestamp())) {
+                return OpfBuilder.getOpfResponse(false, MainErrorType.MISSING_TIMESTAMP, opfRequestContext.getMethod(), opfRequestContext.getVersion(),
+                        SystemParameterNames.getTimestamp() + "不能为空");
+            }
+            Date timestamp = DateUtils.parseDate(opfRequestContext.getTimestamp(), "yyyy-MM-dd HH:mm:ss");
+            if (!OpfUtils.checkTimestamp(timestamp)) {
+                String message = java.text.MessageFormat.format("timestamp:{0}签名验证已过期", opfRequestContext.getTimestamp());
+                return OpfBuilder.getOpfResponse(false, MainErrorType.INVALID_TIMESTAMP, opfRequestContext.getMethod(), opfRequestContext.getVersion(),
+                        message);
+            }
+        } catch (ParseException e) {
+            String message = java.text.MessageFormat.format("timestamp:{0}格式必须为{1}", opfRequestContext.getTimestamp(), "yyyy-MM-dd HH:mm:ss");
+            return OpfBuilder.getOpfResponse(false, MainErrorType.METHOD_DEPRECATED, opfRequestContext.getMethod(), opfRequestContext.getVersion(),
+                    message);
         }
 
-        //7.检查请求HTTP方法的匹配性
-        mainError = validateHttpAction(opfRequestContext);
-        if (mainError != null) {
-            return mainError;
+        //5.检查签名正确性
+        OpfResponse errorResponse = checkSign(opfRequestContext);
+        if (errorResponse != null) {
+            return errorResponse;
+        }
+
+        //6.检查会话
+        errorResponse = checkSession(opfRequestContext);
+        if (errorResponse != null) {
+            return errorResponse;
         }
 
         return null;
     }
 
-
+    @Override
     public OpfResponse validateOther(OpfRequestContext opfRequestContext) {
         //1.判断应用/会话/用户访问服务的次数或频度是否超限
         OpfResponse mainError = checkInvokeTimesLimit(opfRequestContext);
@@ -100,6 +113,7 @@ public class DefaultSecurityManager implements com.github.opf.security.SecurityM
         return invokeManager;
     }
 
+    @Override
     public void setInvokeManager(InvokeManager invokeManager) {
         this.invokeManager = invokeManager;
     }
@@ -108,15 +122,15 @@ public class DefaultSecurityManager implements com.github.opf.security.SecurityM
         return sessionManager;
     }
 
+    @Override
     public void setAppSecretManager(AppSecretManager appSecretManager) {
         this.appSecretManager = appSecretManager;
     }
 
-
+    @Override
     public void setSessionManager(SessionManager sessionManager) {
         this.sessionManager = sessionManager;
     }
-
 
     private OpfResponse checkInvokeTimesLimit(OpfRequestContext opfCtx) {
         if (invokeManager.isAppInvokeFrequencyExceed(opfCtx.getAppKey())) {
@@ -125,10 +139,7 @@ public class DefaultSecurityManager implements com.github.opf.security.SecurityM
         } else if (invokeManager.isAppInvokeLimitExceed(opfCtx.getAppKey())) {
             return OpfBuilder.getOpfResponse(false, MainErrorType.EXCEED_APP_INVOKE_LIMITED, opfCtx.getMethod(),
                     opfCtx.getVersion(), "应用的服务访问次数超限");
-        } else if (invokeManager.isUserInvokeLimitExceed(opfCtx.getAppKey(), opfCtx.getSession())) {
-            return OpfBuilder.getOpfResponse(false, MainErrorType.EXCEED_USER_INVOKE_LIMITED, opfCtx.getMethod(),
-                    opfCtx.getVersion(), "用户服务访问次数超限");
-        } else if (invokeManager.isSessionInvokeLimitExceed(opfCtx.getAppKey(), opfCtx.getAccessToken())) {
+        } else if (invokeManager.isSessionInvokeLimitExceed(opfCtx.getAppKey(), opfCtx.getSessionId())) {
             return OpfBuilder.getOpfResponse(false, MainErrorType.EXCEED_SESSION_INVOKE_LIMITED, opfCtx.getMethod(),
                     opfCtx.getVersion(), "会话的服务访问次数超限");
         } else {
@@ -136,34 +147,9 @@ public class DefaultSecurityManager implements com.github.opf.security.SecurityM
         }
     }
 
-    /**
-     * 校验是否是合法的HTTP动作
-     *
-     * @param opfRequestContext
-     */
-    private OpfResponse validateHttpAction(OpfRequestContext opfRequestContext) {
-        OpfResponse mainError = null;
-        HttpAction[] httpActions = opfRequestContext.getServiceMethodHandler().getServiceMethodDefinition().getHttpAction();
-        if (httpActions.length > 0) {
-            boolean isValid = false;
-            for (HttpAction httpAction : httpActions) {
-                if (httpAction == opfRequestContext.getHttpAction()) {
-                    isValid = true;
-                    break;
-                }
-            }
-            if (!isValid) {
-                mainError = OpfBuilder.getOpfResponse(false, MainErrorType.HTTP_ACTION_NOT_ALLOWED, opfRequestContext.getMethod(),
-                        opfRequestContext.getVersion(), "httpAction不合法");
-            }
-        }
-        return mainError;
-    }
-
     public AppSecretManager getAppSecretManager() {
         return appSecretManager;
     }
-
 
     /**
      * 检查签名的有效性
@@ -172,37 +158,42 @@ public class DefaultSecurityManager implements com.github.opf.security.SecurityM
      * @return
      */
     private OpfResponse checkSign(OpfRequestContext context) {
-
         if (!context.getServiceMethodHandler().getServiceMethodDefinition().isIgnoreSign()) {
-            if (context.getSign() == null) {
+            if (StringUtils.isEmpty(context.getSign())) {
                 return OpfBuilder.getOpfResponse(false, MainErrorType.MISSING_SIGNATURE, context.getMethod(), context.getVersion(), "sign为空");
             } else {
                 //查看密钥是否存在，不存在则说明appKey是非法的
-                String signSecret = getAppSecretManager().getSecret(context.getAppKey());
-                if (signSecret == null) {
+                String appSecret = getAppSecretManager().getSecret(context.getAppKey());
+                if (StringUtils.isEmpty(appSecret)) {
+                    String message = java.text.MessageFormat.format("无法获取{0}对应的密钥", context.getAppKey());
                     return OpfBuilder.getOpfResponse(false, MainErrorType.UNAUTHORIZED_APP_KEY, context.getMethod(),
-                            context.getVersion(), String.format("无法获取%1$s对应的密钥", context.getAppKey()));
+                            context.getVersion(), message);
                 }
-
-                String signValue = OpfUtils.sign(context.getAllParams(), context.getBody(), signSecret);
-                if (!signValue.equals(context.getSign())) {
-                    if (logger.isErrorEnabled()) {
-                        logger.error(context.getAppKey() + "的签名不合法，请检查");
+                try {
+                    String signValue = OpfUtils.sign(context.getAllParams(), context.getBody(), appSecret);
+                    if (!signValue.equals(context.getSign())) {
+                        if (logger.isInfoEnabled()) {
+                            logger.info(context.getAppKey() + "的签名不合法，请检查");
+                        }
+                        String message = java.text.MessageFormat.format("{0}的签名不合法，请检查", context.getAppKey());
+                        return OpfBuilder.getOpfResponse(false, MainErrorType.INVALID_SIGNATURE, context.getMethod(),
+                                context.getVersion(), message);
+                    } else {
+                        return null;
                     }
+                } catch (Exception e) {
+                    String message = java.text.MessageFormat.format("{0}的签名不合法，请检查", context.getAppKey());
                     return OpfBuilder.getOpfResponse(false, MainErrorType.INVALID_SIGNATURE, context.getMethod(),
-                            context.getVersion(), String.format("%1$s的签名不合法，请检查", context.getAppKey()));
-                } else {
-                    return null;
+                            context.getVersion(), message);
                 }
             }
         } else {
-            if (logger.isWarnEnabled()) {
-                logger.warn(context.getMethod() + "忽略了签名");
+            if (logger.isDebugEnabled()) {
+                logger.debug(context.getMethod() + "忽略了签名");
             }
             return null;
         }
     }
-
 
     /**
      * 是否是合法的会话
@@ -214,14 +205,16 @@ public class DefaultSecurityManager implements com.github.opf.security.SecurityM
         //需要进行session检查
         if (context.getServiceMethodHandler() != null &&
                 context.getServiceMethodHandler().getServiceMethodDefinition().isNeedInSession()) {
-            if (context.getAccessToken() == null) {
-                return OpfBuilder.getOpfResponse(false, MainErrorType.MISSING_ACCESS_TOKEN, context.getMethod(), context.getVersion(), "accessToken为空");
+            if (StringUtils.isEmpty(context.getSessionId())) {
+                return OpfBuilder.getOpfResponse(false, MainErrorType.MISSING_SESSION, context.getMethod(), context.getVersion(), "session为空");
             } else {
-                Session session = sessionManager.getSession(context.getAccessToken());
+                Session session = sessionManager.getSession(context.getSessionId());
                 if (session == null) {
-                    logger.debug(context.getAccessToken() + "会话不存在，请检查。");
-                    return OpfBuilder.getOpfResponse(false, MainErrorType.INVALID_ACCESS_TOKEN, context.getMethod(),
-                            context.getVersion(), context.getAccessToken() + "会话不存在，请检查。");
+                    logger.info(context.getSessionId() + "会话不存在，请检查。");
+                    return OpfBuilder.getOpfResponse(false, MainErrorType.INVALID_SESSION, context.getMethod(),
+                            context.getVersion(), context.getSessionId() + "会话不存在，请检查。");
+                } else {
+                    context.setSession(session);
                 }
             }
         }

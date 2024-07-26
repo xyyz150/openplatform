@@ -2,9 +2,8 @@
 package com.github.opf.event;
 
 /**
- * <pre>
- *   注册事件监听器，发布事件
- * </pre>
+ * 注册事件监听器，发布事件
+ * Created by xyyz150
  */
 public interface OpfEventHandler {
 

@@ -4,11 +4,8 @@ package com.github.opf.event;
 import com.github.opf.OpfContext;
 
 /**
- * <pre>
- *   在opf框架初始化后产生的事件
- * </pre>
- *
- * @version 1.0
+ * 在opf框架初始化后产生的事件
+ * Created by xyyz150
  */
 public class AfterStartedOpfEvent extends OpfEvent {
 

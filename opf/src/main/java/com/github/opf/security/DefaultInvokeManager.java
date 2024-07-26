@@ -6,31 +6,20 @@ import com.github.opf.session.Session;
  * Created by xyyz150
  */
 public class DefaultInvokeManager implements InvokeManager {
-    public void calcInvokeTimes(String appKey, Session session) {
 
-    }
-
-    public boolean isUserInvokeLimitExceed(String appKey, Session session) {
-        return false;
-    }
-
+    @Override
     public boolean isSessionInvokeLimitExceed(String appKey, String sessionId) {
         return false;
     }
 
+    @Override
     public boolean isAppInvokeLimitExceed(String appKey) {
         return false;
     }
 
+    @Override
     public boolean isAppInvokeFrequencyExceed(String appKey) {
         return false;
     }
 
-    public void countTimes(String appKey) {
-
-    }
-
-    public boolean invokeLimit(String appKey) {
-        return false;
-    }
 }

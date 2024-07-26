@@ -4,7 +4,7 @@ import java.io.Serializable;
 import java.util.Map;
 
 /**
- * @author chenxh
+ * @author xyyz150
  */
 public interface Session extends Serializable {
 

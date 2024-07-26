@@ -6,11 +6,7 @@ import com.github.opf.request.OpfRequest;
 import java.lang.reflect.Method;
 
 /**
- * <pre>
- *     服务处理器的相关信息
- * </pre>
- *
- * @version 1.0
+ * 服务处理器的相关信息
  */
 public class ServiceMethodHandler {
 
@@ -24,9 +20,6 @@ public class ServiceMethodHandler {
 
     //处理方法的请求对象类
     private Class<? extends OpfRequest> requestType = OpfRequest.class;
-
-    //是否是实现类
-    private boolean opfRequestImplType;
 
     public ServiceMethodHandler() {
     }
@@ -70,14 +63,6 @@ public class ServiceMethodHandler {
 
     public static String methodWithVersion(String methodName, String version) {
         return methodName + "#" + version;
-    }
-
-    public boolean isOpfRequestImplType() {
-        return opfRequestImplType;
-    }
-
-    public void setOpfRequestImplType(boolean opfRequestImplType) {
-        this.opfRequestImplType = opfRequestImplType;
     }
 
 }

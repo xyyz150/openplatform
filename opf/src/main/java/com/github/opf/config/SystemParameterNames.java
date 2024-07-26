@@ -4,11 +4,8 @@
  */package com.github.opf.config;
 
 /**
- * <pre>
- *   系统级参数的名称
- * </pre>
- *
- * @version 1.0
+ * 系统级参数的名称
+ * Created by xyyz150
  */
 public class SystemParameterNames {
 
@@ -19,13 +16,16 @@ public class SystemParameterNames {
     private static final String FORMAT = "format";
 
     //会话id默认参数名
-    private static final String AccessToken = "AccessToken";
+    private static final String SESSION = "session";
 
     //应用键的默认参数名        ;
-    private static final String APP_KEY = "appKey";
+    private static final String APPKEY = "appKey";
 
     //服务版本号的默认参数名
     private static final String VERSION = "v";
+
+    //时间戳的默认参数名
+    private static final String TIMESTAMP = "timestamp";
 
     //签名的默认参数名
     private static final String SIGN = "sign";
@@ -34,11 +34,13 @@ public class SystemParameterNames {
 
     private static String format = FORMAT;
 
-    private static String accessToken = AccessToken;
+    private static String session = SESSION;
 
-    private static String appKey = APP_KEY;
+    private static String appKey = APPKEY;
 
     private static String version = VERSION;
+    //时间戳，格式为yyyy-MM-dd HH:mm:ss，时区为GMT+8，例如：2016-01-01 12:00:00
+    private static String timestamp = TIMESTAMP;
 
     private static String sign = SIGN;
 
@@ -58,12 +60,12 @@ public class SystemParameterNames {
         SystemParameterNames.format = format;
     }
 
-    public static String getAccessToken() {
-        return accessToken;
+    public static String getSession() {
+        return session;
     }
 
-    public static void setAccessToken(String accessToken) {
-        SystemParameterNames.accessToken = accessToken;
+    public static void setSession(String session) {
+        SystemParameterNames.session = session;
     }
 
     public static String getAppKey() {
@@ -80,6 +82,14 @@ public class SystemParameterNames {
 
     public static void setVersion(String version) {
         SystemParameterNames.version = version;
+    }
+
+    public static String getTimestamp() {
+        return timestamp;
+    }
+
+    public static void setTimestamp(String timestamp) {
+        SystemParameterNames.timestamp = timestamp;
     }
 
     public static String getSign() {

@@ -2,14 +2,8 @@
 package com.github.opf.handler;
 
 
-import com.github.opf.annotation.HttpAction;
-
 /**
- * <pre>
- * 功能说明：
- * </pre>
  *
- * @version 1.0
  */
 public class ServiceMethodDefinition {
 
@@ -17,11 +11,6 @@ public class ServiceMethodDefinition {
      * 默认的组
      */
     public static final String DEFAULT_GROUP = "DEFAULT";
-
-    /**
-     * 默认分组标识
-     */
-    public static final String DEFAULT_GROUP_TITLE = "DEFAULT GROUP";
 
     /**
      * API的方法
@@ -34,19 +23,9 @@ public class ServiceMethodDefinition {
     private String methodTitle;
 
     /**
-     * HTTP请求的方法
-     */
-    private HttpAction[] httpAction;
-
-    /**
      * API方法所属组名
      */
     private String methodGroup = DEFAULT_GROUP;
-
-    /**
-     * API方法组名的标识
-     */
-    private String methodGroupTitle;
 
     /**
      * API所属的标签
@@ -76,7 +55,7 @@ public class ServiceMethodDefinition {
     /**
      * 服务方法是否已经过期
      */
-    private boolean obsoleted = false;
+    private boolean deprecated = false;
 
     public String getMethod() {
         return method;
@@ -100,14 +79,6 @@ public class ServiceMethodDefinition {
 
     public void setMethodGroup(String methodGroup) {
         this.methodGroup = methodGroup;
-    }
-
-    public String getMethodGroupTitle() {
-        return methodGroupTitle;
-    }
-
-    public void setMethodGroupTitle(String methodGroupTitle) {
-        this.methodGroupTitle = methodGroupTitle;
     }
 
     public String[] getTags() {
@@ -150,20 +121,12 @@ public class ServiceMethodDefinition {
         this.ignoreSign = ignoreSign;
     }
 
-    public HttpAction[] getHttpAction() {
-        return httpAction;
+    public boolean isDeprecated() {
+        return deprecated;
     }
 
-    public void setHttpAction(HttpAction[] httpAction) {
-        this.httpAction = httpAction;
-    }
-
-    public boolean isObsoleted() {
-        return obsoleted;
-    }
-
-    public void setObsoleted(boolean obsoleted) {
-        this.obsoleted = obsoleted;
+    public void setDeprecated(boolean deprecated) {
+        this.deprecated = deprecated;
     }
 }
 

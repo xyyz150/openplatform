@@ -4,11 +4,7 @@ package com.github.opf.event;
 import com.github.opf.request.OpfRequestContext;
 
 /**
- * <pre>
- * 功能说明：
- * </pre>
- *
- * @version 1.0
+ * Created by xyyz150
  */
 public class AfterDoServiceEvent extends OpfEvent {
 

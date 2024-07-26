@@ -2,11 +2,8 @@
 package com.github.opf.annotation;
 
 /**
- * <pre>
  * 功能说明：是否需求会话检查
- * </pre>
- *
- * @version 1.0
+ * Created by xyyz150
  */
 public enum NeedInSessionType {
     YES, NO, DEFAULT;

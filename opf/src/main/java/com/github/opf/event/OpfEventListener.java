@@ -4,11 +4,8 @@ package com.github.opf.event;
 import java.util.EventListener;
 
 /**
- * <pre>
- *    监听所有Opf框架的事件
- * </pre>
- *
- * @version 1.0
+ * 监听所有Opf框架的事件
+ * Created by xyyz150
  */
 public interface OpfEventListener<E extends OpfEvent> extends EventListener {
 

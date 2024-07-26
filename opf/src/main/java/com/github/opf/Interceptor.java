@@ -5,11 +5,8 @@ import com.github.opf.request.OpfRequestContext;
 import com.github.opf.response.OpfResponse;
 
 /**
- * <pre>
- *   拦截器，将在服务之前，服务之后响应之前调用
- * </pre>
- *
- * @version 1.0
+ * 拦截器，将在服务之前，服务之后响应之前调用
+ * Created by xyyz150
  */
 public interface Interceptor {
 

@@ -2,7 +2,7 @@ package com.github.opf.session;
 
 /**
  * 会话管理器
- *
+ * Created by xyyz150
  */
 public interface SessionManager {
 

@@ -2,7 +2,6 @@ package com.github.opf.request;
 
 import com.github.opf.MessageFormat;
 import com.github.opf.OpfContext;
-import com.github.opf.annotation.HttpAction;
 import com.github.opf.handler.ServiceMethodHandler;
 import com.github.opf.session.Session;
 
@@ -41,7 +40,7 @@ public class OpfRequestContext {
     private String appKey;
 
     //会话id
-    private String accessToken;
+    private String sessionId;
 
     //请求格式xml/json
     private MessageFormat format;
@@ -53,8 +52,6 @@ public class OpfRequestContext {
     private String timestamp;
 
     private String ip;
-
-    private HttpAction httpAction;
 
     private String body;
     //请求后的响应
@@ -71,17 +68,7 @@ public class OpfRequestContext {
     //session
     private Session session;
 
-
-
     private String requestId = UUID.randomUUID().toString();
-
-    public HttpAction getHttpAction() {
-        return httpAction;
-    }
-
-    public void setHttpAction(HttpAction httpAction) {
-        this.httpAction = httpAction;
-    }
 
     public HttpServletRequest getHttpServletRequest() {
         return httpServletRequest;
@@ -147,12 +134,12 @@ public class OpfRequestContext {
         this.appKey = appKey;
     }
 
-    public String getAccessToken() {
-        return accessToken;
+    public String getSessionId() {
+        return sessionId;
     }
 
-    public void setAccessToken(String accessToken) {
-        this.accessToken = accessToken;
+    public void setSessionId(String sessionId) {
+        this.sessionId = sessionId;
     }
 
     public MessageFormat getFormat() {
